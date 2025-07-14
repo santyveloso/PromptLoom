@@ -3,6 +3,8 @@ import { nanoid } from 'nanoid'
 
 export const usePromptStore = create((set) => ({
   blocks: [],
+  user: null,
+  setUser: (user) => set ({user}),
   
   addBlock: (type) => set((state) => ({
     blocks: [...state.blocks, { id: nanoid(), type, content: "" }]

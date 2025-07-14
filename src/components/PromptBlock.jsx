@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { usePromptStore } from "../store/promptStore"
 
 const typeColors = {
@@ -13,10 +14,13 @@ export default function PromptBlock({ block }) {
   const removeBlock = usePromptStore((s) => s.removeBlock)
 
   return (
-    <div
-      className={`p-4 border-l-4 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md ${
-        typeColors[block.type] || "bg-gray-100 border-gray-300"
-      }`}
+    <motion.div
+      key={block.id}
+      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className={`p-4 border-l-4 rounded-xl shadow transition-all duration-200 hover:shadow-md ${typeColors[block.type] || "bg-gray-100 border-gray-300"}`}
     >
       <div className="flex justify-between items-center mb-2">
         <span className="font-semibold text-gray-700">{block.type}</span>
@@ -34,6 +38,6 @@ export default function PromptBlock({ block }) {
         onChange={(e) => updateBlock(block.id, e.target.value)}
         rows={3}
       />
-    </div>
+    </motion.div>
   )
 }
