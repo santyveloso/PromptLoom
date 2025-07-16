@@ -2,6 +2,9 @@ import { usePromptStore } from './store/promptStore'
 import PromptBlock from './components/PromptBlock'
 import PromptPreview from './components/PromptPreview'
 import { Reorder } from 'framer-motion'
+import { savePrompt } from './lib/savePrompt'
+import Login from './components/Login'
+import { useAuthListener } from './hooks/useAuthListener'
 
 // Função auxiliar para mover elementos no array
 function move(array, from, to) {
@@ -13,11 +16,7 @@ function move(array, from, to) {
 
 function App() {
   const user = usePromptStore((s) => s.user)
-
-  if (!user) {
-    return <Login />
-  }
-  
+  const authChecked = usePromptStore((s => s.authChecked))
   const blocks = usePromptStore((s) => s.blocks)
   const addBlock = usePromptStore((s) => s.addBlock)
   const reorderBlocks = usePromptStore((s) => s.reorderBlocks)
@@ -31,6 +30,16 @@ function App() {
 
     const newOrder = move(blocks, fromIndex, toIndex)
     reorderBlocks(newOrder)
+  }
+
+  useAuthListener()
+
+  if (!authChecked) {
+    return <div className="text-gray-500">Loading...</div>
+  }
+
+  if (!user) {
+    return <Login />
   }
 
   return (
@@ -107,6 +116,13 @@ function App() {
 
       {/* Área de preview */}
       <PromptPreview />
+
+      <button
+        onClick={() => savePrompt(blocks)}
+        className="bg-green-500 text-white px-4 py-2 rounded-md mb-6 hover:bg-green-600 transition"
+      >
+        💾 Save Prompt
+      </button>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { signInWithPopup } from "firebase/auth"
-import { auth, provider } from "../firebase"
+import { auth, provider } from "../../firebase"
 import { usePromptStore } from "../store/promptStore"
 
 export default function Login() {
