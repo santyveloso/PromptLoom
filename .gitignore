@@ -39,4 +39,4 @@ dist-ssr
 # OS-specific
 Thumbs.db
 
-*.kiro
+.kiro/
