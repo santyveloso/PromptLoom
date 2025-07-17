@@ -5,6 +5,10 @@ export const usePromptStore = create((set) => ({
   blocks: [],
   user: null,
   authChecked: false,
+  savedPrompts: [],
+  savedPromptsLoading: false,
+  savedPromptsError: null,
+  
   setUser: (user) => set ({user}),
   setAuthChecked: (val) => set(() => ({ authChecked: val})),
   
@@ -22,5 +26,29 @@ export const usePromptStore = create((set) => ({
 
   reorderBlocks: (newOrder) => set(() => ({
     blocks: newOrder
+  })),
+
+  // Saved prompts actions
+  setSavedPrompts: (prompts) => set(() => ({
+    savedPrompts: prompts
+  })),
+
+  setSavedPromptsLoading: (loading) => set(() => ({
+    savedPromptsLoading: loading
+  })),
+
+  setSavedPromptsError: (error) => set(() => ({
+    savedPromptsError: error
+  })),
+
+  loadPromptIntoBuilder: (prompt) => set(() => ({
+    blocks: prompt.blocks.map(block => ({
+      ...block,
+      id: nanoid() // Generate new IDs to avoid conflicts
+    }))
+  })),
+
+  clearBuilder: () => set(() => ({
+    blocks: []
   }))
 }))

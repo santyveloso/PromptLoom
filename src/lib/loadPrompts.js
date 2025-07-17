@@ -1,13 +1,11 @@
 import { db, auth } from "../../firebase"
-import { doc, setDoc } from "firebase/firestore"
-import { nanoid } from "nanoid"
+import { collection, query, orderBy, getDocs } from "firebase/firestore"
 
 /**
- * Save a prompt to Firestore with enhanced metadata
- * @param {Array} blocks - Array of prompt blocks
- * @returns {Promise<{success: boolean, error?: string, promptId?: string}>}
+ * Load all saved prompts for the current authenticated user
+ * @returns {Promise<{success: boolean, data?: Array, error?: string}>}
  */
-export async function savePrompt(blocks) {
+export async function loadPrompts() {
   try {
     const user = auth.currentUser
     if (!user) {
@@ -17,65 +15,38 @@ export async function savePrompt(blocks) {
       }
     }
 
-    // Validate blocks
-    if (!blocks || !Array.isArray(blocks)) {
-      return {
-        success: false,
-        error: "Invalid blocks data"
-      }
-    }
-
-    // Prevent saving empty prompts
-    const hasContent = blocks.some(block => 
-      block.content && block.content.trim().length > 0
-    )
+    // Reference to user's prompts collection
+    const promptsRef = collection(db, "users", user.uid, "prompts")
     
-    if (!hasContent) {
-      return {
-        success: false,
-        error: "Cannot save empty prompt. Please add some content first."
-      }
-    }
-
-    const promptId = nanoid()
-    const promptRef = doc(db, "users", user.uid, "prompts", promptId)
-    const now = new Date().toISOString()
-
-    const promptData = {
-      blocks,
-      createdAt: now,
-      updatedAt: now,
-      title: generateTitle(blocks),
-      preview: generatePreview(blocks)
-    }
-
-    await setDoc(promptRef, promptData)
+    // Query prompts ordered by creation date (newest first)
+    const q = query(promptsRef, orderBy("createdAt", "desc"))
+    
+    // Execute the query
+    const querySnapshot = await getDocs(q)
+    
+    // Transform the documents into a usable format
+    const prompts = []
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      prompts.push({
+        id: doc.id,
+        title: generateTitle(data.blocks),
+        blocks: data.blocks || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt || data.createdAt,
+        preview: generatePreview(data.blocks)
+      })
+    })
 
     return {
       success: true,
-      promptId
+      data: prompts
     }
   } catch (error) {
-    console.error("Error saving prompt:", error)
-    
-    // Handle specific Firebase errors
-    if (error.code === 'permission-denied') {
-      return {
-        success: false,
-        error: "Permission denied. Please check your authentication."
-      }
-    }
-    
-    if (error.code === 'unavailable') {
-      return {
-        success: false,
-        error: "Service temporarily unavailable. Please try again."
-      }
-    }
-
+    console.error("Error loading prompts:", error)
     return {
       success: false,
-      error: error.message || "Failed to save prompt"
+      error: error.message || "Failed to load prompts"
     }
   }
 }
