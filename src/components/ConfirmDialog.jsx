@@ -65,10 +65,10 @@ export default function ConfirmDialog({
               "
             >
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 leading-snug mb-2">
                   {title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                   {message}
                 </p>
               </div>
@@ -78,20 +78,7 @@ export default function ConfirmDialog({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onCancel}
-                  className="
-                    px-4 
-                    py-2 
-                    text-gray-700 
-                    bg-gray-100 
-                    hover:bg-gray-200 
-                    rounded-lg 
-                    font-medium 
-                    transition-colors 
-                    focus:outline-none 
-                    focus:ring-2 
-                    focus:ring-gray-500 
-                    focus:ring-offset-2
-                  "
+                  className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
                   {cancelText}
                 </motion.button>
@@ -100,18 +87,10 @@ export default function ConfirmDialog({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onConfirm}
-                  className={`
-                    px-4 
-                    py-2 
-                    text-white 
-                    rounded-lg 
-                    font-medium 
-                    transition-colors 
-                    focus:outline-none 
-                    focus:ring-2 
-                    focus:ring-offset-2
-                    ${confirmButtonClasses}
-                  `}
+                  className={confirmVariant === "danger" 
+                    ? "bg-red-500 text-white hover:bg-red-600 px-4 py-2 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+                    : "bg-gradient-to-r from-purple-500 to-pink-400 text-white font-semibold hover:from-purple-600 hover:to-pink-500 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+                  }
                 >
                   {confirmText}
                 </motion.button>

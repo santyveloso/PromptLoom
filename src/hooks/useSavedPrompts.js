@@ -27,16 +27,13 @@ export function useSavedPrompts() {
   const retryDelayMs = 1000
 
   /**
-   * Load saved prompts with retry logic
+   * Load saved prompts with simple error handling
    */
-  const loadSavedPrompts = useCallback(async (isRetry = false) => {
+  const loadSavedPrompts = useCallback(async () => {
     if (!user) {
       setSavedPromptsError('User not authenticated')
+      setSavedPromptsLoading(false)
       return { success: false, error: 'User not authenticated' }
-    }
-
-    if (!isRetry) {
-      retryCountRef.current = 0
     }
 
     setSavedPromptsLoading(true)
@@ -47,33 +44,17 @@ export function useSavedPrompts() {
       
       if (result.success) {
         setSavedPrompts(result.data || [])
-        setSavedPromptsLoading(false)
-        retryCountRef.current = 0
         return { success: true, data: result.data }
       } else {
-        throw new Error(result.error || 'Failed to load prompts')
+        setSavedPromptsError(result.error || 'Failed to load prompts')
+        return { success: false, error: result.error || 'Failed to load prompts' }
       }
     } catch (error) {
       console.error('Error loading saved prompts:', error)
-      
-      // Implement exponential backoff retry logic
-      if (retryCountRef.current < maxRetries) {
-        retryCountRef.current += 1
-        const delay = retryDelayMs * Math.pow(2, retryCountRef.current - 1)
-        
-        console.log(`Retrying load prompts in ${delay}ms (attempt ${retryCountRef.current}/${maxRetries})`)
-        
-        setTimeout(() => {
-          loadSavedPrompts(true)
-        }, delay)
-        
-        return { success: false, error: `Loading failed, retrying... (${retryCountRef.current}/${maxRetries})` }
-      } else {
-        setSavedPromptsLoading(false)
-        setSavedPromptsError(error.message || 'Failed to load saved prompts')
-        retryCountRef.current = 0
-        return { success: false, error: error.message || 'Failed to load saved prompts' }
-      }
+      setSavedPromptsError(error.message || 'Failed to load saved prompts')
+      return { success: false, error: error.message || 'Failed to load saved prompts' }
+    } finally {
+      setSavedPromptsLoading(false)
     }
   }, [user, setSavedPrompts, setSavedPromptsLoading, setSavedPromptsError])
 
@@ -87,6 +68,15 @@ export function useSavedPrompts() {
 
     if (!blocks || blocks.length === 0) {
       return { success: false, error: 'No blocks to save' }
+    }
+
+    // Check if blocks have content
+    const hasContent = blocks.some(block => 
+      block.content && block.content.trim().length > 0
+    )
+    
+    if (!hasContent) {
+      return { success: false, error: 'Cannot save empty prompt. Please add some content first.' }
     }
 
     try {
@@ -149,12 +139,16 @@ export function useSavedPrompts() {
     setSavedPromptsError(null)
   }, [setSavedPromptsError])
 
+  // Track if we've attempted to load prompts for this user session
+  const hasAttemptedLoad = useRef(false)
+
   // Automatically load saved prompts when user authenticates
   useEffect(() => {
-    if (authChecked && user && savedPrompts.length === 0 && !savedPromptsLoading) {
+    if (authChecked && user && !hasAttemptedLoad.current && !savedPromptsLoading) {
+      hasAttemptedLoad.current = true
       loadSavedPrompts()
     }
-  }, [authChecked, user, savedPrompts.length, savedPromptsLoading, loadSavedPrompts])
+  }, [authChecked, user, savedPromptsLoading, loadSavedPrompts])
 
   // Clear saved prompts when user logs out
   useEffect(() => {
@@ -163,6 +157,7 @@ export function useSavedPrompts() {
       setSavedPromptsError(null)
       setSavedPromptsLoading(false)
       retryCountRef.current = 0
+      hasAttemptedLoad.current = false
     }
   }, [authChecked, user, setSavedPrompts, setSavedPromptsError, setSavedPromptsLoading])
 

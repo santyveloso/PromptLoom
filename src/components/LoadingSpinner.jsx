@@ -21,7 +21,7 @@ export default function LoadingSpinner({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center p-4">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{
@@ -43,7 +43,7 @@ export default function LoadingSpinner({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mt-3 text-sm text-gray-600 font-medium"
+          className="mt-3 text-sm sm:text-base font-medium"
         >
           {text}
         </motion.p>
