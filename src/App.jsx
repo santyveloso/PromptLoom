@@ -76,7 +76,7 @@ function App() {
                 />
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium text-gray-900 truncate max-w-32 lg:max-w-none">
-                    {user.displayName || user.email}
+                    {user.displayName || user.email?.split('@')[0] || "User"}
                   </p>
                 </div>
               </div>
