@@ -1,37 +1,95 @@
-/* Removed conflicting root styles to allow Tailwind to work properly */
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Typography Hierarchy */
+.heading-xl {
+  @apply text-2xl font-bold;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.heading-lg {
+  @apply text-xl font-semibold;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.heading-md {
+  @apply text-lg font-medium;
 }
 
+.body-lg {
+  @apply text-base;
+}
+
+.body-md {
+  @apply text-sm;
+}
+
+.body-sm {
+  @apply text-xs;
+}
+
+.button-text {
+  @apply text-sm font-medium;
+}
+
+.link-text {
+  @apply text-sm underline;
+}
+
+/* Card styling */
 .card {
-  padding: 2em;
+  @apply bg-white rounded-xl border border-gray-200 shadow-sm bg-white/80 backdrop-blur-sm;
 }
 
-.read-the-docs {
-  color: #888;
+/* Focus states for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+}
+
+/* Button variants */
+.btn {
+  @apply px-4 py-2 rounded-lg transition-colors duration-200 focus-ring;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-purple-500 to-pink-400 text-white font-semibold hover:from-purple-600 hover:to-pink-500 shadow-sm hover:shadow-md;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+}
+
+.btn-success {
+  @apply bg-green-500 text-white hover:bg-green-600;
+}
+
+.btn-danger {
+  @apply bg-red-500 text-white hover:bg-red-600;
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-base;
+}
+
+/* Responsive spacing */
+.section-spacing {
+  @apply space-y-6 sm:space-y-8;
+}
+
+.section-padding {
+  @apply p-4 sm:p-6;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fix duplicate border issue */
+.card-border {
+  @apply border border-gray-200/50;
 }

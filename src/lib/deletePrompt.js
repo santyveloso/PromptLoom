@@ -1,5 +1,6 @@
 import { db, auth } from "../../firebase"
 import { doc, deleteDoc } from "firebase/firestore"
+import { getFirebaseErrorMessage, retryWithBackoff } from "./errorHandling"
 
 /**
  * Delete a saved prompt from Firestore
@@ -23,43 +24,29 @@ export async function deletePrompt(promptId) {
       }
     }
 
-    // Reference to the specific prompt document
-    const promptRef = doc(db, "users", user.uid, "prompts", promptId)
-    
-    // Delete the document
-    await deleteDoc(promptRef)
+    // Use retry with backoff for network resilience
+    // But don't retry permission errors or not-found errors
+    return await retryWithBackoff(async () => {
+      // Reference to the specific prompt document
+      const promptRef = doc(db, "users", user.uid, "prompts", promptId)
+      
+      // Delete the document
+      await deleteDoc(promptRef)
 
-    return {
-      success: true
-    }
+      return {
+        success: true
+      }
+    }, { 
+      maxRetries: 2, // Fewer retries for delete operations
+      baseDelay: 800 
+    })
   } catch (error) {
     console.error("Error deleting prompt:", error)
     
-    // Handle specific Firebase errors
-    if (error.code === 'permission-denied') {
-      return {
-        success: false,
-        error: "Permission denied. You can only delete your own prompts."
-      }
-    }
-    
-    if (error.code === 'not-found') {
-      return {
-        success: false,
-        error: "Prompt not found. It may have already been deleted."
-      }
-    }
-    
-    if (error.code === 'unavailable') {
-      return {
-        success: false,
-        error: "Service temporarily unavailable. Please try again."
-      }
-    }
-
+    // Use our centralized error handling
     return {
       success: false,
-      error: error.message || "Failed to delete prompt"
+      error: getFirebaseErrorMessage(error) || "Failed to delete prompt"
     }
   }
 }

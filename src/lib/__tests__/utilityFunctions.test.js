@@ -1,168 +1,170 @@
-/**
- * Manual test file for utility functions
- * This file can be used to manually test the utility functions
- * Run with: node src/lib/__tests__/utilityFunctions.test.js
- */
+import { loadPrompts } from '../loadPrompts';
+import { savePrompt } from '../savePrompt';
+import { deletePrompt } from '../deletePrompt';
+import { auth, db } from '../../../firebase';
+import { collection, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
 
-// Mock Firebase modules for testing
-const mockFirebase = {
+// Mock Firebase
+jest.mock('../../../firebase', () => ({
   auth: {
-    currentUser: {
-      uid: 'test-user-123'
-    }
+    currentUser: { uid: 'test-user-id' }
   },
-  db: {},
-  collection: () => ({}),
-  query: () => ({}),
-  orderBy: () => ({}),
-  getDocs: () => Promise.resolve({
-    forEach: (callback) => {
-      // Mock some test data
+  db: {
+    collection: jest.fn(),
+    doc: jest.fn()
+  }
+}));
+
+// Mock Firestore
+jest.mock('firebase/firestore', () => ({
+  collection: jest.fn(),
+  query: jest.fn(),
+  orderBy: jest.fn(),
+  getDocs: jest.fn(),
+  doc: jest.fn(),
+  setDoc: jest.fn(),
+  deleteDoc: jest.fn(),
+  getDoc: jest.fn()
+}));
+
+describe('Firebase Utility Functions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('loadPrompts', () => {
+    it('should return prompts when successful', async () => {
+      // Mock data
       const mockDocs = [
         {
-          id: 'prompt-1',
+          id: 'prompt1',
           data: () => ({
-            blocks: [
-              { id: '1', type: 'text', content: 'This is a test prompt' },
-              { id: '2', type: 'text', content: 'with multiple blocks' }
-            ],
-            createdAt: '2024-01-01T00:00:00.000Z'
+            blocks: [{ id: 'block1', type: 'Task', content: 'Test content' }],
+            createdAt: '2023-01-01T00:00:00.000Z',
+            updatedAt: '2023-01-02T00:00:00.000Z'
           })
         }
-      ]
-      mockDocs.forEach(callback)
-    }
-  }),
-  doc: () => ({}),
-  deleteDoc: () => Promise.resolve(),
-  setDoc: () => Promise.resolve()
-}
+      ];
 
-// Test the utility functions
-console.log('🧪 Testing utility functions...')
+      // Mock implementation
+      collection.mockReturnValue('promptsRef');
+      getDocs.mockResolvedValue({
+        forEach: (callback) => mockDocs.forEach(callback)
+      });
 
-// Test 1: Test title generation
-console.log('\n1. Testing title generation:')
-const testBlocks1 = [
-  { id: '1', type: 'text', content: 'This is a short title' },
-  { id: '2', type: 'text', content: 'Second block' }
-]
+      // Execute
+      const result = await loadPrompts();
 
-const testBlocks2 = [
-  { id: '1', type: 'text', content: 'This is a very long title that should be truncated because it exceeds the maximum length allowed for titles' },
-  { id: '2', type: 'text', content: 'Second block' }
-]
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('prompt1');
+      expect(result.data[0].blocks).toHaveLength(1);
+    });
 
-const testBlocks3 = [
-  { id: '1', type: 'text', content: '' },
-  { id: '2', type: 'text', content: '   ' }
-]
+    it('should handle errors gracefully', async () => {
+      // Mock implementation
+      collection.mockReturnValue('promptsRef');
+      getDocs.mockRejectedValue(new Error('Firebase error'));
 
-// Mock the functions for testing
-function generateTitle(blocks) {
-  if (!blocks || blocks.length === 0) {
-    return "Untitled Prompt"
-  }
+      // Execute
+      const result = await loadPrompts();
 
-  const firstBlockWithContent = blocks.find(block => 
-    block.content && block.content.trim().length > 0
-  )
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
 
-  if (!firstBlockWithContent) {
-    return "Untitled Prompt"
-  }
+    it('should handle unauthenticated users', async () => {
+      // Temporarily remove currentUser
+      const originalUser = auth.currentUser;
+      auth.currentUser = null;
 
-  const content = firstBlockWithContent.content.trim()
-  if (content.length <= 50) {
-    return content
-  }
+      // Execute
+      const result = await loadPrompts();
 
-  const truncated = content.substring(0, 47)
-  const lastSpace = truncated.lastIndexOf(' ')
-  
-  if (lastSpace > 20) {
-    return truncated.substring(0, lastSpace) + "..."
-  }
-  
-  return truncated + "..."
-}
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User not authenticated');
 
-function generatePreview(blocks) {
-  if (!blocks || blocks.length === 0) {
-    return "Empty prompt"
-  }
+      // Restore currentUser
+      auth.currentUser = originalUser;
+    });
+  });
 
-  const combinedContent = blocks
-    .filter(block => block.content && block.content.trim().length > 0)
-    .map(block => block.content.trim())
-    .join(" ")
+  describe('savePrompt', () => {
+    it('should save a prompt successfully', async () => {
+      // Mock data
+      const blocks = [
+        { id: 'block1', type: 'Task', content: 'Test content' }
+      ];
 
-  if (combinedContent.length === 0) {
-    return "Empty prompt"
-  }
+      // Mock implementation
+      doc.mockReturnValue('promptRef');
+      setDoc.mockResolvedValue(undefined);
 
-  if (combinedContent.length <= 100) {
-    return combinedContent
-  }
+      // Execute
+      const result = await savePrompt(blocks);
 
-  const truncated = combinedContent.substring(0, 97)
-  const lastSpace = truncated.lastIndexOf(' ')
-  
-  if (lastSpace > 50) {
-    return truncated.substring(0, lastSpace) + "..."
-  }
-  
-  return truncated + "..."
-}
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.promptId).toBeDefined();
+    });
 
-console.log('Short title:', generateTitle(testBlocks1))
-console.log('Long title:', generateTitle(testBlocks2))
-console.log('Empty blocks title:', generateTitle(testBlocks3))
+    it('should validate blocks before saving', async () => {
+      // Execute with invalid blocks
+      const result = await savePrompt(null);
 
-// Test 2: Test preview generation
-console.log('\n2. Testing preview generation:')
-console.log('Short preview:', generatePreview(testBlocks1))
-console.log('Empty blocks preview:', generatePreview(testBlocks3))
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid blocks data');
+    });
 
-// Test 3: Test error handling scenarios
-console.log('\n3. Testing error handling scenarios:')
+    it('should prevent saving empty prompts', async () => {
+      // Execute with empty blocks
+      const result = await savePrompt([
+        { id: 'block1', type: 'Task', content: '' }
+      ]);
 
-function testErrorHandling() {
-  // Test invalid prompt ID
-  const invalidIds = [null, undefined, '', 123, {}, []]
-  
-  invalidIds.forEach(id => {
-    const isValid = id && typeof id === 'string'
-    console.log(`ID "${id}" is valid: ${isValid}`)
-  })
-}
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Cannot save empty prompt. Please add some content first.');
+    });
+  });
 
-testErrorHandling()
+  describe('deletePrompt', () => {
+    it('should delete a prompt successfully', async () => {
+      // Mock implementation
+      doc.mockReturnValue('promptRef');
+      deleteDoc.mockResolvedValue(undefined);
 
-// Test 4: Test validation logic
-console.log('\n4. Testing validation logic:')
+      // Execute
+      const result = await deletePrompt('prompt1');
 
-function hasContent(blocks) {
-  if (!blocks || !Array.isArray(blocks)) {
-    return false
-  }
-  
-  return blocks.some(block => 
-    block.content && block.content.trim().length > 0
-  )
-}
+      // Assert
+      expect(result.success).toBe(true);
+    });
 
-const validBlocks = [{ id: '1', type: 'text', content: 'Valid content' }]
-const emptyBlocks = [{ id: '1', type: 'text', content: '' }]
-const invalidBlocks = null
+    it('should validate promptId before deleting', async () => {
+      // Execute with invalid promptId
+      const result = await deletePrompt(null);
 
-console.log('Valid blocks have content:', hasContent(validBlocks))
-console.log('Empty blocks have content:', hasContent(emptyBlocks))
-console.log('Invalid blocks have content:', hasContent(invalidBlocks))
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid prompt ID');
+    });
 
-console.log('\n✅ All tests completed successfully!')
-console.log('\nThe utility functions are ready to use with proper:')
-console.log('- Error handling for authentication and validation')
-console.log('- Title generation from block content')
-console.log('- Preview text generation')
-console.log('- Firestore integration with proper error codes')
+    it('should handle errors gracefully', async () => {
+      // Mock implementation
+      doc.mockReturnValue('promptRef');
+      deleteDoc.mockRejectedValue({ code: 'permission-denied' });
+
+      // Execute
+      const result = await deletePrompt('prompt1');
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+  });
+});

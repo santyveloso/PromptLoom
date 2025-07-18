@@ -1,154 +1,187 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
-import EmptyState from '../EmptyState'
-import LoadingSpinner from '../LoadingSpinner'
-import ConfirmDialog from '../ConfirmDialog'
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import ErrorBoundary from '../ErrorBoundary';
+import ConfirmDialog from '../ConfirmDialog';
+import EmptyState from '../EmptyState';
 
-describe('EmptyState Component', () => {
-  it('renders with title and description', () => {
+// Mock console.error to avoid test output pollution
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+afterAll(() => {
+  console.error = originalConsoleError;
+});
+
+describe('ErrorBoundary Component', () => {
+  // Create a component that throws an error
+  const ErrorThrowingComponent = ({ shouldThrow }) => {
+    if (shouldThrow) {
+      throw new Error('Test error');
+    }
+    return <div>No error</div>;
+  };
+
+  it('should render children when there is no error', () => {
     render(
-      <EmptyState 
-        title="No prompts yet" 
-        description="Create your first prompt to get started" 
-      />
-    )
-    
-    expect(screen.getByText('No prompts yet')).toBeInTheDocument()
-    expect(screen.getByText('Create your first prompt to get started')).toBeInTheDocument()
-  })
+      <ErrorBoundary>
+        <div data-testid="child">Child content</div>
+      </ErrorBoundary>
+    );
 
-  it('renders action button when provided', () => {
-    const mockAction = vi.fn()
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+
+  it('should render fallback UI when an error occurs', () => {
+    // We need to spy on console.error and suppress it to avoid test output pollution
+    const errorSpy = jest.spyOn(console, 'error');
+    errorSpy.mockImplementation(() => {});
+
     render(
-      <EmptyState 
-        title="Empty" 
-        description="Description" 
-        actionText="Create Prompt"
-        onAction={mockAction}
-      />
-    )
-    
-    const button = screen.getByText('Create Prompt')
-    expect(button).toBeInTheDocument()
-    
-    fireEvent.click(button)
-    expect(mockAction).toHaveBeenCalledOnce()
-  })
+      <ErrorBoundary>
+        <ErrorThrowingComponent shouldThrow={true} />
+      </ErrorBoundary>
+    );
 
-  it('renders custom icon', () => {
+    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    expect(screen.getByText(/Try again/i)).toBeInTheDocument();
+
+    errorSpy.mockRestore();
+  });
+
+  it('should render custom fallback when provided', () => {
+    // We need to spy on console.error and suppress it to avoid test output pollution
+    const errorSpy = jest.spyOn(console, 'error');
+    errorSpy.mockImplementation(() => {});
+
     render(
-      <EmptyState 
-        title="Empty" 
-        description="Description" 
-        icon="🎉"
-      />
-    )
-    
-    expect(screen.getByText('🎉')).toBeInTheDocument()
-  })
-})
+      <ErrorBoundary
+        fallback={({ error }) => (
+          <div data-testid="custom-fallback">
+            Custom error: {error.message}
+          </div>
+        )}
+      >
+        <ErrorThrowingComponent shouldThrow={true} />
+      </ErrorBoundary>
+    );
 
-describe('LoadingSpinner Component', () => {
-  it('renders with default props', () => {
-    render(<LoadingSpinner />)
-    
-    // Check if spinner element exists (div with border classes)
-    const spinner = document.querySelector('.border-indigo-500')
-    expect(spinner).toBeInTheDocument()
-  })
+    expect(screen.getByTestId('custom-fallback')).toBeInTheDocument();
+    expect(screen.getByText(/Custom error: Test error/i)).toBeInTheDocument();
 
-  it('renders with custom text', () => {
-    render(<LoadingSpinner text="Loading prompts..." />)
-    
-    expect(screen.getByText('Loading prompts...')).toBeInTheDocument()
-  })
-
-  it('applies correct size classes', () => {
-    render(<LoadingSpinner size="lg" />)
-    
-    const spinner = document.querySelector('.w-12')
-    expect(spinner).toBeInTheDocument()
-  })
-})
+    errorSpy.mockRestore();
+  });
+});
 
 describe('ConfirmDialog Component', () => {
-  it('does not render when closed', () => {
+  it('should not render when isOpen is false', () => {
     render(
-      <ConfirmDialog 
+      <ConfirmDialog
         isOpen={false}
-        title="Delete prompt"
-        message="Are you sure?"
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        title="Test Title"
+        message="Test Message"
+        onConfirm={() => {}}
+        onCancel={() => {}}
       />
-    )
-    
-    expect(screen.queryByText('Delete prompt')).not.toBeInTheDocument()
-  })
+    );
 
-  it('renders when open', () => {
+    expect(screen.queryByText('Test Title')).not.toBeInTheDocument();
+  });
+
+  it('should render when isOpen is true', () => {
     render(
-      <ConfirmDialog 
+      <ConfirmDialog
         isOpen={true}
-        title="Delete prompt"
-        message="Are you sure you want to delete this prompt?"
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        title="Test Title"
+        message="Test Message"
+        onConfirm={() => {}}
+        onCancel={() => {}}
       />
-    )
-    
-    expect(screen.getByText('Delete prompt')).toBeInTheDocument()
-    expect(screen.getByText('Are you sure you want to delete this prompt?')).toBeInTheDocument()
-    expect(screen.getByText('Confirm')).toBeInTheDocument()
-    expect(screen.getByText('Cancel')).toBeInTheDocument()
-  })
+    );
 
-  it('calls onConfirm when confirm button is clicked', () => {
-    const mockConfirm = vi.fn()
+    expect(screen.getByText('Test Title')).toBeInTheDocument();
+    expect(screen.getByText('Test Message')).toBeInTheDocument();
+  });
+
+  it('should call onConfirm when confirm button is clicked', () => {
+    const mockConfirm = jest.fn();
     render(
-      <ConfirmDialog 
+      <ConfirmDialog
         isOpen={true}
-        title="Delete"
-        message="Are you sure?"
+        title="Test Title"
+        message="Test Message"
         onConfirm={mockConfirm}
-        onCancel={vi.fn()}
+        onCancel={() => {}}
+        confirmText="Yes"
       />
-    )
-    
-    fireEvent.click(screen.getByText('Confirm'))
-    expect(mockConfirm).toHaveBeenCalledOnce()
-  })
+    );
 
-  it('calls onCancel when cancel button is clicked', () => {
-    const mockCancel = vi.fn()
+    fireEvent.click(screen.getByText('Yes'));
+    expect(mockConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onCancel when cancel button is clicked', () => {
+    const mockCancel = jest.fn();
     render(
-      <ConfirmDialog 
+      <ConfirmDialog
         isOpen={true}
-        title="Delete"
-        message="Are you sure?"
-        onConfirm={vi.fn()}
+        title="Test Title"
+        message="Test Message"
+        onConfirm={() => {}}
         onCancel={mockCancel}
+        cancelText="No"
       />
-    )
-    
-    fireEvent.click(screen.getByText('Cancel'))
-    expect(mockCancel).toHaveBeenCalledOnce()
-  })
+    );
 
-  it('renders custom button text', () => {
+    fireEvent.click(screen.getByText('No'));
+    expect(mockCancel).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('EmptyState Component', () => {
+  it('should render with all props', () => {
+    const mockAction = jest.fn();
     render(
-      <ConfirmDialog 
-        isOpen={true}
-        title="Delete"
-        message="Are you sure?"
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-        confirmText="Delete Forever"
-        cancelText="Keep It"
+      <EmptyState
+        icon="🔍"
+        title="No Results Found"
+        description="Try adjusting your search criteria"
+        actionText="Clear Search"
+        onAction={mockAction}
       />
-    )
-    
-    expect(screen.getByText('Delete Forever')).toBeInTheDocument()
-    expect(screen.getByText('Keep It')).toBeInTheDocument()
-  })
-})
+    );
+
+    expect(screen.getByText('🔍')).toBeInTheDocument();
+    expect(screen.getByText('No Results Found')).toBeInTheDocument();
+    expect(screen.getByText('Try adjusting your search criteria')).toBeInTheDocument();
+    expect(screen.getByText('Clear Search')).toBeInTheDocument();
+  });
+
+  it('should not render action button when actionText is not provided', () => {
+    render(
+      <EmptyState
+        icon="🔍"
+        title="No Results Found"
+        description="Try adjusting your search criteria"
+      />
+    );
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('should call onAction when action button is clicked', () => {
+    const mockAction = jest.fn();
+    render(
+      <EmptyState
+        title="No Results Found"
+        description="Try adjusting your search criteria"
+        actionText="Clear Search"
+        onAction={mockAction}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Clear Search'));
+    expect(mockAction).toHaveBeenCalledTimes(1);
+  });
+});

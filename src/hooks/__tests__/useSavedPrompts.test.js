@@ -1,133 +1,199 @@
-/**
- * Manual test file for useSavedPrompts hook
- * This file can be used to manually test the hook functionality
- * Run with: node src/hooks/__tests__/useSavedPrompts.test.js
- */
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useSavedPrompts } from '../useSavedPrompts';
+import { usePromptStore } from '../../store/promptStore';
+import { loadPrompts } from '../../lib/loadPrompts';
+import { savePrompt } from '../../lib/savePrompt';
+import { deletePrompt } from '../../lib/deletePrompt';
 
-// Test the hook functionality
-console.log('🧪 Testing useSavedPrompts hook...')
+// Mock the modules
+jest.mock('../../store/promptStore', () => ({
+  usePromptStore: jest.fn()
+}));
 
-// Test 1: Test hook structure and exports
-console.log('\n1. Testing hook structure:')
+jest.mock('../../lib/loadPrompts', () => ({
+  loadPrompts: jest.fn()
+}));
 
-// Mock store state for testing
-const mockStoreState = {
-  user: { uid: 'test-user' },
-  authChecked: true,
-  savedPrompts: [],
-  savedPromptsLoading: false,
-  savedPromptsError: null,
-  blocks: [{ id: '1', type: 'text', content: 'Test content' }],
-  setSavedPrompts: (prompts) => console.log('Setting saved prompts:', prompts.length),
-  setSavedPromptsLoading: (loading) => console.log('Setting loading:', loading),
-  setSavedPromptsError: (error) => console.log('Setting error:', error)
-}
+jest.mock('../../lib/savePrompt', () => ({
+  savePrompt: jest.fn()
+}));
 
-// Test 2: Test validation logic
-console.log('\n2. Testing validation logic:')
+jest.mock('../../lib/deletePrompt', () => ({
+  deletePrompt: jest.fn()
+}));
 
-function testValidation() {
-  // Test user authentication check
-  const hasUser = mockStoreState.user !== null
-  console.log('User authenticated:', hasUser)
+describe('useSavedPrompts Hook', () => {
+  // Setup mock store
+  const mockSetSavedPrompts = jest.fn();
+  const mockSetSavedPromptsLoading = jest.fn();
+  const mockSetSavedPromptsError = jest.fn();
   
-  // Test blocks validation
-  const hasBlocks = mockStoreState.blocks && mockStoreState.blocks.length > 0
-  console.log('Has blocks to save:', hasBlocks)
-  
-  // Test blocks content validation
-  const hasContent = mockStoreState.blocks.some(block => 
-    block.content && block.content.trim().length > 0
-  )
-  console.log('Blocks have content:', hasContent)
-}
-
-testValidation()
-
-// Test 3: Test retry logic simulation
-console.log('\n3. Testing retry logic:')
-
-function simulateRetryLogic() {
-  const maxRetries = 3
-  let retryCount = 0
-  
-  function calculateDelay(attempt) {
-    const baseDelay = 1000
-    return baseDelay * Math.pow(2, attempt - 1)
-  }
-  
-  console.log('Retry delays:')
-  for (let i = 1; i <= maxRetries; i++) {
-    const delay = calculateDelay(i)
-    console.log(`  Attempt ${i}: ${delay}ms`)
-  }
-}
-
-simulateRetryLogic()
-
-// Test 4: Test error handling scenarios
-console.log('\n4. Testing error handling scenarios:')
-
-function testErrorHandling() {
-  const errorScenarios = [
-    { user: null, error: 'User not authenticated' },
-    { user: { uid: 'test' }, blocks: [], error: 'No blocks to save' },
-    { user: { uid: 'test' }, blocks: null, error: 'No blocks to save' },
-    { promptId: null, error: 'Prompt ID is required' },
-    { promptId: '', error: 'Prompt ID is required' }
-  ]
-  
-  errorScenarios.forEach((scenario, index) => {
-    console.log(`Scenario ${index + 1}:`, scenario.error)
-  })
-}
-
-testErrorHandling()
-
-// Test 5: Test computed values
-console.log('\n5. Testing computed values:')
-
-function testComputedValues() {
-  const scenarios = [
-    {
-      name: 'No prompts, no user',
-      savedPrompts: [],
-      user: null,
-      blocks: [],
-      expected: { hasPrompts: false, canSave: false }
-    },
-    {
-      name: 'Has prompts, has user, has blocks',
-      savedPrompts: [{ id: '1' }],
-      user: { uid: 'test' },
-      blocks: [{ content: 'test' }],
-      expected: { hasPrompts: true, canSave: true }
-    },
-    {
-      name: 'No prompts, has user, no blocks',
-      savedPrompts: [],
-      user: { uid: 'test' },
-      blocks: [],
-      expected: { hasPrompts: false, canSave: false }
-    }
-  ]
-  
-  scenarios.forEach(scenario => {
-    const hasPrompts = scenario.savedPrompts.length > 0
-    const canSave = scenario.user && scenario.blocks && scenario.blocks.length > 0
+  beforeEach(() => {
+    jest.clearAllMocks();
     
-    console.log(`${scenario.name}:`)
-    console.log(`  hasPrompts: ${hasPrompts} (expected: ${scenario.expected.hasPrompts})`)
-    console.log(`  canSave: ${canSave} (expected: ${scenario.expected.canSave})`)
-  })
-}
+    // Default mock implementation
+    usePromptStore.mockImplementation(() => ({
+      user: { uid: 'test-user' },
+      authChecked: true,
+      savedPrompts: [],
+      savedPromptsLoading: false,
+      savedPromptsError: null,
+      setSavedPrompts: mockSetSavedPrompts,
+      setSavedPromptsLoading: mockSetSavedPromptsLoading,
+      setSavedPromptsError: mockSetSavedPromptsError,
+      blocks: [{ id: 'block1', content: 'Test content' }]
+    }));
+  });
 
-testComputedValues()
+  it('should load prompts when user is authenticated', async () => {
+    // Mock successful load
+    loadPrompts.mockResolvedValueOnce({
+      success: true,
+      data: [{ id: 'prompt1', title: 'Test Prompt' }]
+    });
 
-console.log('\n✅ All hook tests completed successfully!')
-console.log('\nThe useSavedPrompts hook provides:')
-console.log('- Automatic loading when user authenticates')
-console.log('- CRUD operations with error handling')
-console.log('- Retry logic with exponential backoff')
-console.log('- Integration with Zustand store')
-console.log('- Computed values for UI state')
+    const { result, waitForNextUpdate } = renderHook(() => useSavedPrompts());
+    
+    await waitForNextUpdate();
+    
+    expect(loadPrompts).toHaveBeenCalled();
+    expect(mockSetSavedPrompts).toHaveBeenCalledWith([{ id: 'prompt1', title: 'Test Prompt' }]);
+    expect(mockSetSavedPromptsLoading).toHaveBeenCalledWith(false);
+  });
+
+  it('should handle load errors correctly', async () => {
+    // Mock failed load
+    loadPrompts.mockResolvedValueOnce({
+      success: false,
+      error: 'Failed to load prompts'
+    });
+
+    const { result, waitForNextUpdate } = renderHook(() => useSavedPrompts());
+    
+    await waitForNextUpdate();
+    
+    expect(loadPrompts).toHaveBeenCalled();
+    expect(mockSetSavedPromptsError).toHaveBeenCalledWith('Failed to load prompts');
+    expect(mockSetSavedPromptsLoading).toHaveBeenCalledWith(false);
+  });
+
+  it('should save prompts correctly', async () => {
+    // Mock successful save
+    savePrompt.mockResolvedValueOnce({
+      success: true,
+      promptId: 'new-prompt-id'
+    });
+    
+    // Mock successful load after save
+    loadPrompts.mockResolvedValueOnce({
+      success: true,
+      data: [{ id: 'new-prompt-id', title: 'New Prompt' }]
+    });
+
+    const { result, waitForNextUpdate } = renderHook(() => useSavedPrompts());
+    
+    await act(async () => {
+      const saveResult = await result.current.saveCurrentPrompt();
+      expect(saveResult.success).toBe(true);
+    });
+    
+    expect(savePrompt).toHaveBeenCalled();
+    expect(loadPrompts).toHaveBeenCalled();
+  });
+
+  it('should handle save errors correctly', async () => {
+    // Mock failed save
+    savePrompt.mockResolvedValueOnce({
+      success: false,
+      error: 'Failed to save prompt'
+    });
+
+    const { result } = renderHook(() => useSavedPrompts());
+    
+    await act(async () => {
+      const saveResult = await result.current.saveCurrentPrompt();
+      expect(saveResult.success).toBe(false);
+      expect(saveResult.error).toBe('Failed to save prompt');
+    });
+  });
+
+  it('should delete prompts correctly', async () => {
+    // Setup mock store with saved prompts
+    usePromptStore.mockImplementation(() => ({
+      user: { uid: 'test-user' },
+      authChecked: true,
+      savedPrompts: [
+        { id: 'prompt1', title: 'Test Prompt 1' },
+        { id: 'prompt2', title: 'Test Prompt 2' }
+      ],
+      savedPromptsLoading: false,
+      savedPromptsError: null,
+      setSavedPrompts: mockSetSavedPrompts,
+      setSavedPromptsLoading: mockSetSavedPromptsLoading,
+      setSavedPromptsError: mockSetSavedPromptsError,
+      blocks: [{ id: 'block1', content: 'Test content' }]
+    }));
+    
+    // Mock successful delete
+    deletePrompt.mockResolvedValueOnce({
+      success: true
+    });
+
+    const { result } = renderHook(() => useSavedPrompts());
+    
+    await act(async () => {
+      const deleteResult = await result.current.deleteSavedPrompt('prompt1');
+      expect(deleteResult.success).toBe(true);
+    });
+    
+    expect(deletePrompt).toHaveBeenCalledWith('prompt1');
+    expect(mockSetSavedPrompts).toHaveBeenCalledWith([
+      { id: 'prompt2', title: 'Test Prompt 2' }
+    ]);
+  });
+
+  it('should handle delete errors correctly', async () => {
+    // Mock failed delete
+    deletePrompt.mockResolvedValueOnce({
+      success: false,
+      error: 'Failed to delete prompt'
+    });
+
+    const { result } = renderHook(() => useSavedPrompts());
+    
+    await act(async () => {
+      const deleteResult = await result.current.deleteSavedPrompt('prompt1');
+      expect(deleteResult.success).toBe(false);
+      expect(deleteResult.error).toBe('Failed to delete prompt');
+    });
+  });
+
+  it('should clear error state', () => {
+    const { result } = renderHook(() => useSavedPrompts());
+    
+    act(() => {
+      result.current.clearError();
+    });
+    
+    expect(mockSetSavedPromptsError).toHaveBeenCalledWith(null);
+  });
+
+  it('should retry loading prompts', async () => {
+    // Mock successful load
+    loadPrompts.mockResolvedValueOnce({
+      success: true,
+      data: [{ id: 'prompt1', title: 'Test Prompt' }]
+    });
+
+    const { result, waitForNextUpdate } = renderHook(() => useSavedPrompts());
+    
+    act(() => {
+      result.current.retryLoadPrompts();
+    });
+    
+    await waitForNextUpdate();
+    
+    expect(loadPrompts).toHaveBeenCalled();
+    expect(mockSetSavedPrompts).toHaveBeenCalledWith([{ id: 'prompt1', title: 'Test Prompt' }]);
+  });
+});

@@ -1,5 +1,6 @@
 import { db, auth } from "../../firebase"
 import { collection, query, orderBy, getDocs } from "firebase/firestore"
+import { getFirebaseErrorMessage, retryWithBackoff } from "./errorHandling"
 
 /**
  * Load all saved prompts for the current authenticated user
@@ -15,38 +16,41 @@ export async function loadPrompts() {
       }
     }
 
-    // Reference to user's prompts collection
-    const promptsRef = collection(db, "users", user.uid, "prompts")
-    
-    // Query prompts ordered by creation date (newest first)
-    const q = query(promptsRef, orderBy("createdAt", "desc"))
-    
-    // Execute the query
-    const querySnapshot = await getDocs(q)
-    
-    // Transform the documents into a usable format
-    const prompts = []
-    querySnapshot.forEach((doc) => {
-      const data = doc.data()
-      prompts.push({
-        id: doc.id,
-        title: generateTitle(data.blocks),
-        blocks: data.blocks || [],
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt || data.createdAt,
-        preview: generatePreview(data.blocks)
+    // Use retry with backoff for network resilience
+    return await retryWithBackoff(async () => {
+      // Reference to user's prompts collection
+      const promptsRef = collection(db, "users", user.uid, "prompts")
+      
+      // Query prompts ordered by creation date (newest first)
+      const q = query(promptsRef, orderBy("createdAt", "desc"))
+      
+      // Execute the query
+      const querySnapshot = await getDocs(q)
+      
+      // Transform the documents into a usable format
+      const prompts = []
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        prompts.push({
+          id: doc.id,
+          title: generateTitle(data.blocks),
+          blocks: data.blocks || [],
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt || data.createdAt,
+          preview: generatePreview(data.blocks)
+        })
       })
-    })
 
-    return {
-      success: true,
-      data: prompts
-    }
+      return {
+        success: true,
+        data: prompts
+      }
+    }, { maxRetries: 3, baseDelay: 1000 })
   } catch (error) {
     console.error("Error loading prompts:", error)
     return {
       success: false,
-      error: error.message || "Failed to load prompts"
+      error: getFirebaseErrorMessage(error) || "Failed to load prompts"
     }
   }
 }

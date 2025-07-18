@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePromptStore } from "../store/promptStore"
 import { useSavedPrompts } from "../hooks/useSavedPrompts"
 import EmptyState from "./EmptyState"
+import ConfirmDialog from "./ConfirmDialog"
+import { getFirebaseErrorMessage, categorizeError, getRecoveryAction } from "../lib/errorHandling"
 
 export default function SavedPrompts() {
   const {
@@ -18,46 +20,68 @@ export default function SavedPrompts() {
   } = useSavedPrompts()
 
   const [deletingPromptId, setDeletingPromptId] = useState(null)
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [promptToDelete, setPromptToDelete] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   // Add error boundary
   const [componentError, setComponentError] = useState(null)
 
   const handleLoadPrompt = (prompt) => {
-    loadPromptIntoBuilder(prompt)
+    try {
+      loadPromptIntoBuilder(prompt)
+    } catch (error) {
+      console.error('Error loading prompt into builder:', error)
+      setErrorMessage(getFirebaseErrorMessage(error) || 'Failed to load prompt')
+      
+      // Auto-dismiss error after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000)
+    }
   }
 
   const handleDeleteClick = (prompt) => {
-    console.log('Delete clicked for prompt:', prompt)
-    
-    // Use browser's built-in confirm dialog instead of custom component
-    const confirmed = window.confirm(`Are you sure you want to delete "${prompt.title}"? This action cannot be undone.`)
-    
-    if (confirmed) {
-      console.log('User confirmed delete')
-      handleDeleteConfirm(prompt)
-    } else {
-      console.log('User cancelled delete')
-    }
+    setPromptToDelete(prompt)
+    setConfirmDialogOpen(true)
   }
 
-  const handleDeleteConfirm = async (prompt) => {
-    if (!prompt) {
+  const handleDeleteConfirm = async () => {
+    if (!promptToDelete) {
       return
     }
 
-    setDeletingPromptId(prompt.id)
+    setDeletingPromptId(promptToDelete.id)
+    setConfirmDialogOpen(false)
     
     try {
-      const result = await deleteSavedPrompt(prompt.id)
+      const result = await deleteSavedPrompt(promptToDelete.id)
       
       if (!result.success) {
-        alert('Failed to delete prompt: ' + (result.error || 'Unknown error'))
+        const errorMsg = result.error || 'Unknown error'
+        console.error('Failed to delete prompt:', errorMsg)
+        setErrorMessage(getFirebaseErrorMessage({ message: errorMsg }) || 'Failed to delete prompt')
+        
+        // Auto-dismiss error after 5 seconds
+        setTimeout(() => setErrorMessage(null), 5000)
       }
     } catch (error) {
-      alert('Failed to delete prompt: ' + error.message)
+      console.error('Error deleting prompt:', error)
+      
+      const errorCategory = categorizeError(error)
+      const recovery = getRecoveryAction(errorCategory)
+      
+      setErrorMessage(`${getFirebaseErrorMessage(error)}. ${recovery.description}`)
+      
+      // Auto-dismiss error after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000)
     } finally {
       setDeletingPromptId(null)
+      setPromptToDelete(null)
     }
+  }
+  
+  const handleCancelDelete = () => {
+    setConfirmDialogOpen(false)
+    setPromptToDelete(null)
   }
 
 
@@ -155,6 +179,32 @@ export default function SavedPrompts() {
 
   return (
     <div className="p-4 sm:p-6">
+      {/* Error message toast */}
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-center justify-between"
+          >
+            <div className="flex items-center">
+              <div className="text-red-400 text-xl mr-3">⚠️</div>
+              <p className="text-red-600 text-sm">{errorMessage}</p>
+            </div>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="text-gray-400 hover:text-gray-600"
+              aria-label="Dismiss error"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2">
           Saved Prompts
@@ -233,6 +283,18 @@ export default function SavedPrompts() {
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialogOpen}
+        title="Delete Prompt"
+        message={promptToDelete ? `Are you sure you want to delete "${promptToDelete.title}"? This action cannot be undone.` : "Are you sure you want to delete this prompt?"}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleCancelDelete}
+      />
     </div>
   )
 }

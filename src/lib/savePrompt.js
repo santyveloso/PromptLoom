@@ -1,6 +1,7 @@
 import { db, auth } from "../../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { nanoid } from "nanoid";
+import { getFirebaseErrorMessage, retryWithBackoff } from "./errorHandling";
 
 /**
  * Save a prompt to Firestore with enhanced metadata
@@ -49,33 +50,25 @@ export async function savePrompt(blocks) {
       preview: generatePreview(blocks),
     };
 
-    await setDoc(promptRef, promptData);
-
-    return {
-      success: true,
-      promptId,
-    };
+    // Use retry with backoff for network resilience
+    return await retryWithBackoff(async () => {
+      await setDoc(promptRef, promptData);
+      
+      return {
+        success: true,
+        promptId,
+      };
+    }, { 
+      maxRetries: 3,
+      baseDelay: 1000 
+    });
   } catch (error) {
     console.error("Error saving prompt:", error);
 
-    // Handle specific Firebase errors
-    if (error.code === "permission-denied") {
-      return {
-        success: false,
-        error: "Permission denied. Please check your authentication.",
-      };
-    }
-
-    if (error.code === "unavailable") {
-      return {
-        success: false,
-        error: "Service temporarily unavailable. Please try again.",
-      };
-    }
-
+    // Use our centralized error handling
     return {
       success: false,
-      error: error.message || "Failed to save prompt",
+      error: getFirebaseErrorMessage(error) || "Failed to save prompt",
     };
   }
 }
