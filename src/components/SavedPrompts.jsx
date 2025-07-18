@@ -253,7 +253,7 @@ export default function SavedPrompts() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleLoadPrompt(prompt)}
-                      className="bg-gradient-to-r from-purple-500 to-pink-400 text-white font-semibold hover:from-purple-600 hover:to-pink-500 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                       aria-label={`Load prompt: ${prompt.title}`}
                     >
                       Load

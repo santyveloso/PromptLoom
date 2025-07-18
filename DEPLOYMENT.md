@@ -1,6 +1,6 @@
-# PromptLoom Deployment Guide
+# PromptStitch Deployment Guide
 
-This document outlines the steps to deploy PromptLoom to production using Vercel.
+This document outlines the steps to deploy PromptStitch to production using Vercel.
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ This document outlines the steps to deploy PromptLoom to production using Vercel
 ## Setting Up Environment Variables in Vercel
 
 1. Log in to your Vercel dashboard
-2. Create a new project or select your existing PromptLoom project
+2. Create a new project or select your existing PromptStitch project
 3. Go to the "Settings" tab and then "Environment Variables"
 4. Add the following environment variables from your Firebase project:
 

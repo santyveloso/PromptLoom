@@ -21,10 +21,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-amber-50 via-orange-50 to-rose-100 px-4">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm bg-white/80 backdrop-blur-sm border border-gray-200/50 p-6 sm:p-8 w-full max-w-md text-center">
+      <div className="bg-white/20 backdrop-blur-sm rounded-full border border-gray-200 p-6 sm:p-8 w-full max-w-md text-center">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 leading-tight mb-3 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome to PromptLoom
+            Welcome to PromptStitch
           </h1>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
             Build powerful, structured prompts with ease

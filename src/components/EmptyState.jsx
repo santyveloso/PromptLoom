@@ -31,7 +31,7 @@ export default function EmptyState({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onAction}
-          className="bg-gradient-to-r from-purple-500 to-pink-400 text-white font-semibold px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg hover:from-purple-600 hover:to-pink-500 transition-all duration-200"
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
         >
           {actionText}
         </motion.button>
