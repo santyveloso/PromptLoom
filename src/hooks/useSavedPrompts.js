@@ -61,7 +61,8 @@ export function useSavedPrompts() {
   /**
    * Save current prompt blocks with error handling
    */
-  const saveCurrentPrompt = useCallback(async () => {
+  const saveCurrentPrompt = useCallback(async (customName = null, customColor = null) => {
+    console.log('useSavedPrompts saveCurrentPrompt called with:', { customName, customColor });
     if (!user) {
       return { success: false, error: 'User not authenticated' }
     }
@@ -80,7 +81,7 @@ export function useSavedPrompts() {
     }
 
     try {
-      const result = await savePrompt(blocks)
+      const result = await savePrompt(blocks, customName, customColor)
       
       if (result.success) {
         // Reload saved prompts to include the new one

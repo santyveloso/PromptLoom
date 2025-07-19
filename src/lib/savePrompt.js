@@ -6,9 +6,16 @@ import { getFirebaseErrorMessage, retryWithBackoff } from "./errorHandling";
 /**
  * Save a prompt to Firestore with enhanced metadata
  * @param {Array} blocks - Array of prompt blocks
+ * @param {string} customName - Custom name for the prompt
+ * @param {string} customColor - Custom color for the prompt
  * @returns {Promise<{success: boolean, error?: string, promptId?: string}>}
  */
-export async function savePrompt(blocks) {
+export async function savePrompt(
+  blocks,
+  customName = null,
+  customColor = null
+) {
+  console.log("savePrompt called with:", { customName, customColor });
   try {
     const user = auth.currentUser;
     if (!user) {
@@ -42,26 +49,37 @@ export async function savePrompt(blocks) {
     const promptRef = doc(db, "users", user.uid, "prompts", promptId);
     const now = new Date().toISOString();
 
+    const processedCustomName =
+      customName && customName.trim() ? customName.trim() : null;
+    console.log("Processed custom name:", processedCustomName);
+
     const promptData = {
       blocks,
       createdAt: now,
       updatedAt: now,
       title: generateTitle(blocks),
       preview: generatePreview(blocks),
+      customName: processedCustomName,
+      customColor: customColor || "#6366f1", // Default to indigo
     };
 
+    console.log("Saving prompt data:", promptData);
+
     // Use retry with backoff for network resilience
-    return await retryWithBackoff(async () => {
-      await setDoc(promptRef, promptData);
-      
-      return {
-        success: true,
-        promptId,
-      };
-    }, { 
-      maxRetries: 3,
-      baseDelay: 1000 
-    });
+    return await retryWithBackoff(
+      async () => {
+        await setDoc(promptRef, promptData);
+
+        return {
+          success: true,
+          promptId,
+        };
+      },
+      {
+        maxRetries: 3,
+        baseDelay: 1000,
+      }
+    );
   } catch (error) {
     console.error("Error saving prompt:", error);
 

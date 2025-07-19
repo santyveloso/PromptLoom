@@ -99,6 +99,31 @@ export default function SavedPrompts() {
     }
   }
 
+  const getPromptTypeColor = (blockType) => {
+    const colors = {
+      Task: 'bg-blue-500',
+      Tone: 'bg-pink-500',
+      Format: 'bg-amber-500',
+      Persona: 'bg-emerald-500',
+      Constraint: 'bg-red-500',
+    }
+    return colors[blockType] || 'bg-gray-400'
+  }
+
+  const getBlockTypeIcons = (blocks) => {
+    if (!blocks || blocks.length === 0) return ['📄']
+    
+    const iconMap = {
+      Task: '📋',
+      Tone: '🎭',
+      Format: '📝',
+      Persona: '👤',
+      Constraint: '⚠️',
+    }
+    
+    return blocks.slice(0, 3).map(block => iconMap[block.type] || '📄')
+  }
+
   // Component error boundary
   if (componentError) {
     return (
@@ -230,13 +255,30 @@ export default function SavedPrompts() {
               className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
             >
               <div className="p-3 sm:p-4">
-                <div className="mb-3">
-                  <h3 className="text-sm sm:text-base font-medium text-gray-900 leading-tight mb-1 line-clamp-2">
-                    {prompt.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                    {formatDate(prompt.createdAt)}
-                  </p>
+                <div className="mb-3 flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div 
+                        className="w-3 h-6 rounded-full shadow-sm border border-white/50"
+                        style={{ backgroundColor: prompt.customColor || '#6366f1' }}
+                      ></div>
+                      <h3 className="text-sm sm:text-base font-medium text-gray-900 leading-tight line-clamp-2">
+                        {(() => {
+                          console.log('Prompt data:', { customName: prompt.customName, title: prompt.title });
+                          return prompt.customName || prompt.title;
+                        })()}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                      <span>{formatDate(prompt.createdAt)}</span>
+                      <span>•</span>
+                      <div className="flex items-center gap-1">
+                        {getBlockTypeIcons(prompt.blocks).map((icon, idx) => (
+                          <span key={idx} className="text-xs">{icon}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 <p className="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3 leading-relaxed">

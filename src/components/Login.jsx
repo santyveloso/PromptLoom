@@ -11,8 +11,8 @@ export default function Login() {
   useEffect(() => {
     const generateBlock = () => ({
       id: Math.random(),
-      x: Math.random() * 90 + 5, // 5% to 85% of screen width
-      y: Math.random() * 90 + 5, // 5% to 85% of screen height
+      x: Math.random() * 80 + 10, // 10% to 90% of screen width
+      y: Math.random() * 80 + 10, // 10% to 90% of screen height
       width: Math.random() * 12 + 28, // w-14 to w-20 equivalent (56px to 80px)
       height: Math.random() * 6 + 10, // h-5 to h-8 equivalent (20px to 32px)
       color: ["indigo", "purple", "blue"][Math.floor(Math.random() * 3)],
@@ -80,13 +80,12 @@ export default function Login() {
           50% { opacity: 0.6; transform: scale(1.2); }
         }
         
-        @keyframes blockAppear {
-          0% { opacity: 0; transform: translateY(20px) scale(0.7); }
-          15% { opacity: 0.3; transform: translateY(10px) scale(0.85); }
-          30% { opacity: 0.8; transform: translateY(0px) scale(1); }
-          70% { opacity: 0.8; transform: translateY(-8px) scale(1.03); }
-          85% { opacity: 0.3; transform: translateY(-18px) scale(0.85); }
-          100% { opacity: 0; transform: translateY(-30px) scale(0.7); }
+        @keyframes blockFloat {
+          0%   { opacity: 0; transform: scale(0.8) translateY(10px); }
+          10%  { opacity: 0.4; }
+          50%  { opacity: 0.8; transform: scale(1) translateY(0); }
+          90%  { opacity: 0.4; transform: scale(1.05) translateY(-6px); }
+          100% { opacity: 0; transform: scale(0.95) translateY(-12px); }
         }
         
         .gradient-shift {
@@ -110,7 +109,7 @@ export default function Login() {
         .connection-node:nth-child(3) { animation-delay: -2.6s; }
         
         .random-block {
-          animation: blockAppear var(--duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation: blockFloat var(--duration) ease-in-out forwards;
         }
       `}</style>
 
@@ -142,6 +141,7 @@ export default function Login() {
                 top: `${block.y}%`,
                 width: `${block.width * 4}px`,
                 height: `${block.height * 4}px`,
+                /* animationDelay: `${Math.random() * 1.5}s`, */
                 backgroundColor: `rgb(${
                   block.color === "indigo"
                     ? "99 102 241"
