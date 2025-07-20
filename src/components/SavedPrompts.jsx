@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePromptStore } from "../store/promptStore";
 import { useSavedPrompts } from "../hooks/useSavedPrompts";
 import EmptyState from "./EmptyState";
-import ConfirmDialog from "./ConfirmDialog";
 import {
   getFirebaseErrorMessage,
   categorizeError,
@@ -11,7 +10,7 @@ import {
 } from "../lib/errorHandling";
 import { updatePromptPinState } from "../lib/updatePromptPinState";
 
-export default function SavedPrompts() {
+export default function SavedPrompts({ onDeletePrompt }) {
   const {
     savedPrompts,
     savedPromptsLoading,
@@ -22,8 +21,6 @@ export default function SavedPrompts() {
   const { deleteSavedPrompt, retryLoadPrompts } = useSavedPrompts();
 
   const [deletingPromptId, setDeletingPromptId] = useState(null);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [promptToDelete, setPromptToDelete] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [togglingPinId, setTogglingPinId] = useState(null);
 
@@ -138,17 +135,17 @@ export default function SavedPrompts() {
   };
 
   const handleDeleteClick = (prompt) => {
-    setPromptToDelete(prompt);
-    setConfirmDialogOpen(true);
+    if (onDeletePrompt) {
+      onDeletePrompt(prompt, handleDeleteConfirm);
+    }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (promptToDelete) => {
     if (!promptToDelete) {
       return;
     }
 
     setDeletingPromptId(promptToDelete.id);
-    setConfirmDialogOpen(false);
 
     try {
       const result = await deleteSavedPrompt(promptToDelete.id);
@@ -178,13 +175,7 @@ export default function SavedPrompts() {
       setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setDeletingPromptId(null);
-      setPromptToDelete(null);
     }
-  };
-
-  const handleCancelDelete = () => {
-    setConfirmDialogOpen(false);
-    setPromptToDelete(null);
   };
 
   const handleTogglePin = async (prompt) => {
@@ -637,21 +628,6 @@ export default function SavedPrompts() {
         </div>
       )}
 
-      {/* Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={confirmDialogOpen}
-        title="Delete Prompt"
-        message={
-          promptToDelete
-            ? `Are you sure you want to delete "${promptToDelete.title}"? This action cannot be undone.`
-            : "Are you sure you want to delete this prompt?"
-        }
-        confirmText="Delete"
-        cancelText="Cancel"
-        confirmVariant="danger"
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleCancelDelete}
-      />
     </div>
   );
 }

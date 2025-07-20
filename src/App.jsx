@@ -6,6 +6,7 @@ import SavedPrompts from "./components/SavedPrompts";
 import EmptyState from "./components/EmptyState";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ConfirmDialog from "./components/ConfirmDialog";
 import { Reorder } from "framer-motion";
 import Login from "./components/Login";
 import { useAuthListener } from "./hooks/useAuthListener";
@@ -41,6 +42,11 @@ function App() {
   const [promptName, setPromptName] = useState("");
   const [promptColor, setPromptColor] = useState("#6366f1");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [promptToDelete, setPromptToDelete] = useState(null);
+  const [deleteConfirmCallback, setDeleteConfirmCallback] = useState(null);
 
   const colorOptions = [
     { name: "Indigo", value: "#6366f1" },
@@ -112,6 +118,30 @@ function App() {
 
   // Initialize saved prompts loading and get functions
   const { saveCurrentPrompt } = useSavedPrompts();
+
+  // Handle delete prompt request from SavedPrompts component
+  const handleDeletePromptRequest = (prompt, confirmCallback) => {
+    setPromptToDelete(prompt);
+    setDeleteConfirmCallback(() => confirmCallback);
+    setShowDeleteDialog(true);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmCallback && promptToDelete) {
+      deleteConfirmCallback(promptToDelete);
+    }
+    setShowDeleteDialog(false);
+    setPromptToDelete(null);
+    setDeleteConfirmCallback(null);
+  };
+
+  // Handle delete cancellation
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false);
+    setPromptToDelete(null);
+    setDeleteConfirmCallback(null);
+  };
 
   const handleLogout = async () => {
     try {
@@ -407,7 +437,7 @@ function App() {
                       </div>
                     )}
                   >
-                    <SavedPrompts />
+                    <SavedPrompts onDeletePrompt={handleDeletePromptRequest} />
                   </ErrorBoundary>
                 </div>
               </div>
@@ -709,6 +739,24 @@ function App() {
             </span>
           </button>
         </div>
+
+        {/* Global Delete Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={showDeleteDialog}
+          title="Delete Prompt"
+          message={
+            promptToDelete
+              ? `Are you sure you want to delete "${
+                  promptToDelete.customName || promptToDelete.title
+                }"? This action cannot be undone.`
+              : "Are you sure you want to delete this prompt?"
+          }
+          confirmText="Delete"
+          cancelText="Cancel"
+          confirmVariant="danger"
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
       </>
     </ErrorBoundary>
   );
