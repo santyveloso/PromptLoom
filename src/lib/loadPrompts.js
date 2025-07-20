@@ -37,7 +37,11 @@ export async function loadPrompts() {
           blocks: data.blocks || [],
           createdAt: data.createdAt,
           updatedAt: data.updatedAt || data.createdAt,
-          preview: generatePreview(data.blocks)
+          preview: generatePreview(data.blocks),
+          customName: data.customName || null,
+          customColor: data.customColor || '#6366f1',
+          isPinned: data.isPinned || false,
+          pinnedAt: data.pinnedAt || null
         })
       })
 

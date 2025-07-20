@@ -13,7 +13,7 @@ import { useSavedPrompts } from "./hooks/useSavedPrompts";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { getFirebaseErrorMessage } from "./lib/errorHandling";
-import GeminiClient from "./services/geminiClient";
+import AIFillModal from "./components/AIFillModal";
 import { nanoid } from "nanoid";
 import "./App.css";
 
@@ -35,9 +35,6 @@ function App() {
 
   // AI Fill state
   const [showAIModal, setShowAIModal] = useState(false);
-  const [aiInput, setAiInput] = useState("");
-  const [isAIProcessing, setIsAIProcessing] = useState(false);
-  const [aiError, setAiError] = useState(null);
 
   // Save prompt naming state
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -126,109 +123,6 @@ function App() {
           "Failed to sign out. Please try again."
       );
     }
-  };
-
-  const handleAIFill = async () => {
-    if (!import.meta.env.VITE_GEMINI_API_KEY) {
-      setAiError("AI features require an API key. Please check your settings.");
-      return;
-    }
-
-    if (!aiInput.trim()) {
-      setAiError("Please enter a description of what you want to create.");
-      return;
-    }
-
-    setIsAIProcessing(true);
-    setAiError(null);
-
-    try {
-      const geminiClient = new GeminiClient(
-        import.meta.env.VITE_GEMINI_API_KEY
-      );
-
-      const systemPrompt = `You are a specialized AI assistant inside a visual prompt-building tool.
-      When a user clicks "AI Fill", they provide a natural language input describing what they want.
-      Your task is to analyze the input and extract up to five structured Prompt Blocks, each capturing a specific instruction or parameter in detail.
-
-      Each block must be explicit, complete, and clearly labeled, following this fixed order:
-      Task – A detailed description of the core action or goal the user expects. Expand it with relevant clarifications based on context.
-      Tone – A rich, contextual description of the desired style, voice, or emotional mood of the output. If multiple tones apply, include them.
-      Format – A clear specification of the structural layout of the expected AI-generated output, including type (e.g., bullet list, table, numbered steps) and any relevant formatting cues.
-      Persona – A thorough description of the character, expertise, or perspective the AI should adopt. Include traits, roles, and tone associated with that persona.
-      Constraint – All explicit and implied restrictions or boundaries. Be precise, and include ingredients, topics, phrasing, or structural limitations if relevant.
-
-      You must always:
-      - Respond in this fixed order: Task, Tone, Format, Persona, Constraint
-      - Use the same language as the user's input (e.g., reply in Portuguese if the request is in Portuguese)
-      - Infer lightly implied details only when clearly suggested — never hallucinate or overreach
-      - Label each block with a bold header (e.g., **Task:**) and ensure content is multi-line if needed
-      - Only include blocks that are clearly present or strongly implied. Do not include placeholders or empty block headers.
-      - Do not use JSON or code formatting. Output should be plain text with bolded block names followed by content.
-
-      User input: ${aiInput}`;
-
-      const response = await geminiClient.makeRequest(systemPrompt, {
-        maxOutputTokens: 1200,
-        temperature: 0.7,
-      });
-
-      // Parse the AI response and create blocks
-      parseAIResponseAndCreateBlocks(response);
-
-      setShowAIModal(false);
-      setAiInput("");
-    } catch (error) {
-      console.error("AI Fill error:", error);
-      setAiError(
-        error.message || "Failed to generate blocks. Please try again."
-      );
-    } finally {
-      setIsAIProcessing(false);
-    }
-  };
-
-  const parseAIResponseAndCreateBlocks = (response) => {
-    // Clear existing blocks first
-    clearBuilder();
-
-    const blockTypes = ["Task", "Tone", "Format", "Persona", "Constraint"];
-    const newBlocks = [];
-
-    blockTypes.forEach((type) => {
-      const regex = new RegExp(
-        `\\*\\*${type}:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*(?:Task|Tone|Format|Persona|Constraint):|$)`,
-        "i"
-      );
-      const match = response.match(regex);
-
-      if (match && match[1]) {
-        const content = match[1].trim();
-        if (content) {
-          newBlocks.push({
-            id: nanoid(),
-            type,
-            content,
-          });
-        }
-      }
-    });
-
-    // Add blocks to store
-    newBlocks.forEach((block) => {
-      addBlock(block.type);
-      // Update the content after a brief delay to ensure the block is created
-      setTimeout(() => {
-        const store = usePromptStore.getState();
-        const latestBlocks = store.blocks;
-        const targetBlock = latestBlocks.find(
-          (b) => b.type === block.type && !b.content
-        );
-        if (targetBlock) {
-          store.updateBlock(targetBlock.id, block.content);
-        }
-      }, 100);
-    });
   };
 
   // Log errors to console and potentially to an error tracking service
@@ -650,92 +544,11 @@ function App() {
           </div>
 
           {/* AI Fill Modal */}
-          {showAIModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      ✨ AI Fill - Describe Your Prompt
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setShowAIModal(false);
-                        setAiInput("");
-                        setAiError(null);
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="mb-6">
-                    <p className="text-gray-600 mb-4">
-                      Describe what you want to create and I'll automatically
-                      generate the appropriate prompt blocks for you.
-                    </p>
-
-                    <textarea
-                      value={aiInput}
-                      onChange={(e) => setAiInput(e.target.value)}
-                      placeholder="Example: I want to write a professional email to a client explaining a project delay, keeping it apologetic but confident, formatted as a formal business letter..."
-                      className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
-                      disabled={isAIProcessing}
-                    />
-                  </div>
-
-                  {aiError && (
-                    <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm">
-                      {aiError}
-                    </div>
-                  )}
-
-                  <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => {
-                        setShowAIModal(false);
-                        setAiInput("");
-                        setAiError(null);
-                      }}
-                      className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                      disabled={isAIProcessing}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleAIFill}
-                      disabled={isAIProcessing || !aiInput.trim()}
-                      className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                        isAIProcessing || !aiInput.trim()
-                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                          : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700"
-                      }`}
-                    >
-                      {isAIProcessing ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                          <span>Generating...</span>
-                        </div>
-                      ) : (
-                        "Generate Blocks"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <AIFillModal
+            isOpen={showAIModal}
+            onClose={() => setShowAIModal(false)}
+            apiKey={import.meta.env.VITE_GEMINI_API_KEY}
+          />
 
           {/* Save Prompt Modal */}
           {showSaveModal && (
@@ -866,7 +679,7 @@ function App() {
                       className={`px-6 py-2 rounded-lg font-medium transition-all ${
                         isSaving
                           ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                          : "bg-green-600 text-white hover:bg-green-700"
+                          : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700"
                       }`}
                     >
                       {isSaving ? (
@@ -890,16 +703,10 @@ function App() {
             className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center z-40 group"
             aria-label="AI Fill - Generate blocks from description"
           >
-            <div className="flex flex-col items-center">
-              <span className="text-lg">✨</span>
-              <span className="text-xs font-medium opacity-90">AI</span>
-            </div>
-
-            {/* Tooltip */}
-            <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-              AI Fill - Generate blocks
-              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-            </div>
+            <span className="text-xl">✨</span>
+            <span className="absolute right-16 bg-white text-gray-800 px-3 py-1 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+              AI Fill
+            </span>
           </button>
         </div>
       </>

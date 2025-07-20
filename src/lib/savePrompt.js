@@ -61,6 +61,8 @@ export async function savePrompt(
       preview: generatePreview(blocks),
       customName: processedCustomName,
       customColor: customColor || "#6366f1", // Default to indigo
+      isPinned: false, // Default to unpinned
+      pinnedAt: null, // No pin date initially
     };
 
     console.log("Saving prompt data:", promptData);
