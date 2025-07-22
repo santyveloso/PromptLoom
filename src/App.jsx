@@ -207,16 +207,17 @@ function App() {
             100% { opacity: 0; transform: translateY(-30px) scale(0.7); }
           }
           
-          .app-gradient-shift-light {
-            background: linear-gradient(-45deg, #f8fafc, #e0e7ff, #ede9fe, #fdf2f8);
+          .app-gradient-background {
+            background: linear-gradient(-45deg, 
+              ${
+                isDarkMode
+                  ? "#0f172a, #1e293b, #312e81, #1e1b4b"
+                  : "#f8fafc, #e0e7ff, #ede9fe, #fdf2f8"
+              }
+            );
             background-size: 400% 400%;
             animation: gradientShift 20s ease infinite;
-          }
-          
-          .app-gradient-shift-dark {
-            background: linear-gradient(-45deg, #0f172a, #1e293b, #312e81, #1e1b4b);
-            background-size: 400% 400%;
-            animation: gradientShift 20s ease infinite;
+            transition: background 0.5s ease-in-out;
           }
           
           .app-stitch-line {
@@ -244,7 +245,7 @@ function App() {
             isDarkMode
               ? "bg-gray-900/90 border-gray-700/30"
               : "bg-white/70 border-white/30"
-          } backdrop-blur-md border-b sticky top-0 z-50`}
+          } backdrop-blur-md border-b sticky top-0 z-50 transition-colors duration-300`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 lg:grid lg:grid-cols-4 lg:gap-6">
@@ -261,7 +262,7 @@ function App() {
                   {/* Dark Mode Toggle */}
                   <button
                     onClick={() => setIsDarkMode(!isDarkMode)}
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-2 rounded-lg transition-all duration-300 ${
                       isDarkMode
                         ? "bg-gray-700 text-yellow-400 hover:bg-gray-600"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -304,7 +305,7 @@ function App() {
                     />
                     <div className="hidden sm:block">
                       <p
-                        className={`text-sm font-medium truncate max-w-32 lg:max-w-none ${
+                        className={`text-sm font-medium truncate max-w-32 lg:max-w-none transition-colors duration-300 ${
                           isDarkMode ? "text-white" : "text-gray-900"
                         }`}
                       >
@@ -327,27 +328,23 @@ function App() {
         </header>
 
         {/* Background Container */}
-        <div
-          className={`min-h-screen ${
-            isDarkMode ? "app-gradient-shift-dark" : "app-gradient-shift-light"
-          } relative overflow-hidden`}
-        >
+        <div className="min-h-screen app-gradient-background relative overflow-hidden">
           {/* Animated Stitching Lines - More Subtle */}
           <div className="absolute inset-0 pointer-events-none">
             <div
               className={`app-stitch-line absolute top-1/4 left-0 w-full h-0.5 bg-gradient-to-r from-transparent ${
                 isDarkMode ? "via-indigo-400/30" : "via-indigo-300/20"
-              } to-transparent`}
+              } to-transparent transition-all duration-500`}
             ></div>
             <div
               className={`app-stitch-line absolute top-2/3 left-0 w-full h-0.5 bg-gradient-to-r from-transparent ${
                 isDarkMode ? "via-purple-400/30" : "via-purple-300/20"
-              } to-transparent`}
+              } to-transparent transition-all duration-500`}
             ></div>
             <div
               className={`app-stitch-line absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent ${
                 isDarkMode ? "via-blue-400/25" : "via-blue-300/15"
-              } to-transparent`}
+              } to-transparent transition-all duration-500`}
             ></div>
           </div>
 
@@ -356,27 +353,27 @@ function App() {
             <div
               className={`app-connection-node absolute top-1/4 left-1/4 w-2 h-2 ${
                 isDarkMode ? "bg-indigo-400/40" : "bg-indigo-400/25"
-              } rounded-full`}
+              } rounded-full transition-all duration-500`}
             ></div>
             <div
               className={`app-connection-node absolute top-2/3 right-1/3 w-2 h-2 ${
                 isDarkMode ? "bg-purple-400/40" : "bg-purple-400/25"
-              } rounded-full`}
+              } rounded-full transition-all duration-500`}
             ></div>
             <div
               className={`app-connection-node absolute top-1/2 left-2/3 w-2 h-2 ${
                 isDarkMode ? "bg-blue-400/40" : "bg-blue-400/25"
-              } rounded-full`}
+              } rounded-full transition-all duration-500`}
             ></div>
             <div
               className={`app-connection-node absolute top-1/3 right-1/4 w-1.5 h-1.5 ${
                 isDarkMode ? "bg-indigo-300/30" : "bg-indigo-300/20"
-              } rounded-full`}
+              } rounded-full transition-all duration-500`}
             ></div>
             <div
               className={`app-connection-node absolute bottom-1/3 left-1/3 w-1.5 h-1.5 ${
                 isDarkMode ? "bg-purple-300/30" : "bg-purple-300/20"
-              } rounded-full`}
+              } rounded-full transition-all duration-500`}
             ></div>
           </div>
 
