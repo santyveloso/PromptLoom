@@ -72,7 +72,7 @@ describe('Error Handling Utilities', () => {
   describe('retryWithBackoff', () => {
     it('should retry the function until it succeeds', async () => {
       let attempts = 0;
-      const mockFn = jest.fn().mockImplementation(() => {
+      const mockFn = vi.fn().mockImplementation(() => {
         attempts++;
         if (attempts < 2) {
           throw new Error('Temporary failure');
@@ -91,7 +91,7 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should throw after max retries', async () => {
-      const mockFn = jest.fn().mockImplementation(() => {
+      const mockFn = vi.fn().mockImplementation(() => {
         throw new Error('Persistent failure');
       });
 
@@ -105,7 +105,7 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should not retry for certain error types', async () => {
-      const mockFn = jest.fn().mockImplementation(() => {
+      const mockFn = vi.fn().mockImplementation(() => {
         throw { code: 'permission-denied', message: 'No permission' };
       });
 
@@ -120,7 +120,7 @@ describe('Error Handling Utilities', () => {
 
   describe('createSafeFunction', () => {
     it('should return success result when function succeeds', async () => {
-      const mockFn = jest.fn().mockResolvedValue('success result');
+      const mockFn = vi.fn().mockResolvedValue('success result');
       const safeFn = createSafeFunction(mockFn);
       
       const result = await safeFn('arg1', 'arg2');
@@ -130,7 +130,7 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should return error result when function fails', async () => {
-      const mockFn = jest.fn().mockRejectedValue(new Error('Something failed'));
+      const mockFn = vi.fn().mockRejectedValue(new Error('Something failed'));
       const safeFn = createSafeFunction(mockFn);
       
       const result = await safeFn();

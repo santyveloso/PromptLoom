@@ -16,6 +16,7 @@ import { auth } from "../firebase";
 import { getFirebaseErrorMessage } from "./lib/errorHandling";
 import AIFillModal from "./components/AIFillModal";
 import { nanoid } from "nanoid";
+import { ALL_BLOCK_TYPES } from "./constants/blockTypes";
 import "./App.css";
 
 // Helper function to move elements in array
@@ -448,7 +449,7 @@ function App() {
                       Build Your Prompt
                     </h2>
                     <div className="flex gap-3 flex-wrap">
-                      {["Task", "Tone", "Format", "Persona", "Constraint"].map(
+                      {ALL_BLOCK_TYPES.map(
                         (type) => (
                           <button
                             key={type}

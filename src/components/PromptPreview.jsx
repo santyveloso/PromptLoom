@@ -1,19 +1,24 @@
+import { useMemo } from "react"
 import { usePromptStore } from "../store/promptStore"
 import EmptyState from "./EmptyState"
 import { motion } from "framer-motion"
+import { sortBlocksByOrder } from "../constants/blockTypes"
 
 export default function PromptPreview() {
   const blocks = usePromptStore((s) => s.blocks)
   const addBlock = usePromptStore((s) => s.addBlock)
 
-  const combinedPrompt = blocks
-    .filter((b) => b.content.trim() !== "")
-    .map((b) => `${b.type}: ${b.content.trim()}`)
-    .join("\n\n")
+  // Memoize the sorted and filtered blocks to reduce computation on every render
+  const combinedPrompt = useMemo(() => {
+    return sortBlocksByOrder(blocks)
+      .filter((b) => b && b.content && b.content.trim() !== "")
+      .map((b) => `${b.type}: ${b.content.trim()}`)
+      .join("\n\n")
+  }, [blocks])
 
   const hasContent = combinedPrompt.trim() !== ""
   const hasBlocks = blocks.length > 0
-  const hasEmptyBlocks = blocks.some(b => b.content.trim() === "")
+  const hasEmptyBlocks = blocks.some(b => b && b.content && b.content.trim() === "")
 
   return (
     <div className="p-4 sm:p-6">

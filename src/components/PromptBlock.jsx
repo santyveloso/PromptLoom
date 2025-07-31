@@ -8,6 +8,10 @@ const typeColors = {
   Persona:
     "bg-emerald-50 border-emerald-500 text-emerald-900 border-l-emerald-600",
   Constraint: "bg-red-50 border-red-500 text-red-900 border-l-red-600",
+  Audience: "bg-cyan-50 border-cyan-500 text-cyan-900 border-l-cyan-600",
+  Style: "bg-violet-50 border-violet-500 text-violet-900 border-l-violet-600",
+  Examples: "bg-orange-50 border-orange-500 text-orange-900 border-l-orange-600",
+  "Creativity Level": "bg-teal-50 border-teal-500 text-teal-900 border-l-teal-600",
 };
 
 const blockIcons = {
@@ -16,6 +20,10 @@ const blockIcons = {
   Format: "📝",
   Persona: "👤",
   Constraint: "⚠️",
+  Audience: "👥",
+  Style: "🎨",
+  Examples: "💡",
+  "Creativity Level": "🌟",
 };
 
 export default function PromptBlock({ block, isFirst, isLast, blockIndex }) {
@@ -113,6 +121,14 @@ function getBackgroundClass(blockType) {
       "bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 border-emerald-500 text-emerald-900",
     Constraint:
       "bg-gradient-to-br from-red-50 via-red-100 to-red-50 border-red-500 text-red-900",
+    Audience:
+      "bg-gradient-to-br from-cyan-50 via-cyan-100 to-cyan-50 border-cyan-500 text-cyan-900",
+    Style:
+      "bg-gradient-to-br from-violet-50 via-violet-100 to-violet-50 border-violet-500 text-violet-900",
+    Examples:
+      "bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 border-orange-500 text-orange-900",
+    "Creativity Level":
+      "bg-gradient-to-br from-teal-50 via-teal-100 to-teal-50 border-teal-500 text-teal-900",
   };
   return (
     backgrounds[blockType] ||
@@ -127,6 +143,10 @@ function getBorderColor(blockType) {
     Format: "bg-amber-500",
     Persona: "bg-emerald-500",
     Constraint: "bg-red-500",
+    Audience: "bg-cyan-500",
+    Style: "bg-violet-500",
+    Examples: "bg-orange-500",
+    "Creativity Level": "bg-teal-500",
   };
   return colors[blockType] || "bg-gray-500";
 }
@@ -140,7 +160,21 @@ function getPlaceholderText(blockType) {
       'What role should the AI take? (e.g., "You are a marketing expert...")',
     Constraint:
       'Any specific rules or limits? (e.g., "Keep it under 100 words")',
+    Audience:
+      'Who is this for? (e.g., "beginners", "CEOs", "children", "experts")',
+    Style:
+      'What style should be used? (e.g., "Hemingway", "academic", "journalistic")',
+    Examples:
+      'Provide examples or samples to guide the output...',
+    "Creativity Level":
+      'How creative should this be? (e.g., "highly imaginative", "strictly factual")',
   };
+  
+  // Handle null, undefined, or non-string block types gracefully
+  if (!blockType || typeof blockType !== 'string') {
+    return 'Enter your block details...';
+  }
+  
   return (
     placeholders[blockType] ||
     `Enter your ${blockType.toLowerCase()} details...`

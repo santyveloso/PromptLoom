@@ -15,7 +15,7 @@ describe("GeminiClient", () => {
 
   it("should create client with API key", () => {
     expect(client.apiKey).toBe(mockApiKey);
-    expect(client.model).toBe("gemini-2.0-flash");
+    expect(client.model).toBe("gemini-2.5-flash");
   });
 
   it("should make successful API request", async () => {
@@ -42,6 +42,7 @@ describe("GeminiClient", () => {
     fetch.mockResolvedValueOnce({
       ok: false,
       status: 429,
+      text: () => Promise.resolve("Rate limit exceeded")
     });
 
     await expect(client.makeRequest("Test prompt")).rejects.toThrow(
