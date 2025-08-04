@@ -41,7 +41,7 @@ function App() {
   // Save prompt naming state
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [promptName, setPromptName] = useState("");
-  const [promptColor, setPromptColor] = useState("#6366f1");
+  const [promptColor, setPromptColor] = useState("#C8B6FF");
   const [isSaving, setIsSaving] = useState(false);
 
   // Delete confirmation state
@@ -50,24 +50,24 @@ function App() {
   const [deleteConfirmCallback, setDeleteConfirmCallback] = useState(null);
 
   const colorOptions = [
-    { name: "Indigo", value: "#6366f1" },
-    { name: "Purple", value: "#8b5cf6" },
-    { name: "Pink", value: "#ec4899" },
-    { name: "Red", value: "#ef4444" },
-    { name: "Orange", value: "#f97316" },
-    { name: "Amber", value: "#f59e0b" },
-    { name: "Yellow", value: "#eab308" },
-    { name: "Lime", value: "#84cc16" },
-    { name: "Green", value: "#22c55e" },
-    { name: "Emerald", value: "#10b981" },
-    { name: "Teal", value: "#14b8a6" },
-    { name: "Cyan", value: "#06b6d4" },
-    { name: "Sky", value: "#0ea5e9" },
-    { name: "Blue", value: "#3b82f6" },
-    { name: "Violet", value: "#7c3aed" },
-    { name: "Fuchsia", value: "#d946ef" },
-    { name: "Rose", value: "#f43f5e" },
-    { name: "Gray", value: "#6b7280" },
+    { name: "Soft Pink", value: "#FFD6FF" },
+    { name: "Lavender", value: "#E7C6FF" },
+    { name: "Periwinkle", value: "#C8B6FF" },
+    { name: "Sky Blue", value: "#B8C0FF" },
+    { name: "Powder Blue", value: "#BBD0FF" },
+    { name: "Mint", value: "#B8E6B8" },
+    { name: "Peach", value: "#FFD1B8" },
+    { name: "Cream", value: "#FFF2B8" },
+    { name: "Rose", value: "#FFB8D1" },
+    { name: "Sage", value: "#C8E6C8" },
+    { name: "Lilac", value: "#E6B8FF" },
+    { name: "Coral", value: "#FFB8B8" },
+    { name: "Lemon", value: "#FFFFB8" },
+    { name: "Aqua", value: "#B8FFFF" },
+    { name: "Mauve", value: "#E6C8E6" },
+    { name: "Blush", value: "#FFE6E6" },
+    { name: "Seafoam", value: "#E6FFE6" },
+    { name: "Vanilla", value: "#FFFFE6" },
   ];
 
   // Animated background blocks
@@ -213,7 +213,7 @@ function App() {
               ${
                 isDarkMode
                   ? "#0f172a, #1e293b, #312e81, #1e1b4b"
-                  : "#f8fafc, #e0e7ff, #ede9fe, #fdf2f8"
+                  : "#fefefe, #f8f4ff, #f0f0ff, #f8f8ff"
               }
             );
             background-size: 400% 400%;
@@ -252,7 +252,7 @@ function App() {
             <div className="flex items-center justify-between h-16 lg:grid lg:grid-cols-4 lg:gap-6">
               {/* Logo - Aligned with saved prompts on desktop */}
               <div className="lg:col-span-1 flex items-center">
-                <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-3xl font-bold text-purple-600">
                   PromptStitch
                 </h1>
               </div>
@@ -449,17 +449,15 @@ function App() {
                       Build Your Prompt
                     </h2>
                     <div className="flex gap-3 flex-wrap">
-                      {ALL_BLOCK_TYPES.map(
-                        (type) => (
-                          <button
-                            key={type}
-                            onClick={() => addBlock(type)}
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 text-sm"
-                          >
-                            + {type}
-                          </button>
-                        )
-                      )}
+                      {ALL_BLOCK_TYPES.map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => addBlock(type)}
+                          className="bg-purple-500 text-white font-semibold px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md hover:bg-purple-600 transition-all duration-200 text-sm"
+                        >
+                          + {type}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -707,7 +705,7 @@ function App() {
                       className={`px-6 py-2 rounded-lg font-medium transition-all ${
                         isSaving
                           ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                          : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700"
+                          : "bg-purple-500 text-white hover:bg-purple-600"
                       }`}
                     >
                       {isSaving ? (
@@ -728,7 +726,7 @@ function App() {
           {/* Floating AI Fill Button */}
           <button
             onClick={() => setShowAIModal(true)}
-            className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center z-40 group"
+            className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-[#C8B6FF] to-[#BBD0FF] text-gray-800 rounded-full shadow-lg hover:shadow-xl hover:from-[#B8C0FF] hover:to-[#C8B6FF] transition-all duration-200 flex items-center justify-center z-40 group"
             aria-label="AI Fill - Generate blocks from description"
           >
             <span className="text-xl">✨</span>

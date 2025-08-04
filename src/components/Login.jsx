@@ -164,8 +164,8 @@ export default function Login() {
         {/* Login Card */}
         <div className="bg-white/85 backdrop-blur-md rounded-2xl border border-slate-100 shadow-2xl p-8 sm:p-10 w-full max-w-md text-center relative z-10">
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 leading-tight mb-3 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome to PromptStitch
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 leading-tight mb-3">
+              Welcome to <span className="text-purple-600">PromptStitch</span>
             </h1>
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
               Build powerful, structured prompts with ease

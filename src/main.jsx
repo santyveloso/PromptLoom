@@ -32,7 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             </p>
             <button
               onClick={resetError}
-              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg shadow hover:from-indigo-700 hover:to-purple-700 transition-all"
+              className="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg shadow hover:bg-purple-600 transition-all"
             >
               Reload Application
             </button>

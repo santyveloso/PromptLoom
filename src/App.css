@@ -47,7 +47,7 @@
 }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-sm hover:shadow-md;
+  @apply bg-purple-500 text-white font-semibold hover:bg-purple-600 shadow-sm hover:shadow-md;
 }
 
 .btn-secondary {
@@ -55,11 +55,11 @@
 }
 
 .btn-success {
-  @apply bg-green-500 text-white hover:bg-green-600;
+  @apply bg-green-400 text-gray-800 hover:bg-green-500;
 }
 
 .btn-danger {
-  @apply bg-red-500 text-white hover:bg-red-600;
+  @apply bg-red-400 text-gray-800 hover:bg-red-500;
 }
 
 .btn-sm {

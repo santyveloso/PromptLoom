@@ -317,7 +317,7 @@ const AIFillModal = ({ isOpen, onClose, apiKey }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !userInput.trim()}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-purple-500 text-white font-semibold hover:bg-purple-600 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isProcessing ? (
                     <>
@@ -385,7 +385,7 @@ const AIFillModal = ({ isOpen, onClose, apiKey }) => {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-purple-500 text-white font-semibold hover:bg-purple-600 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isProcessing ? (
                     <>
@@ -451,7 +451,7 @@ const AIFillModal = ({ isOpen, onClose, apiKey }) => {
               </p>
               <button
                 onClick={onClose}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 px-6 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                className="bg-purple-500 text-white font-semibold hover:bg-purple-600 px-6 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Close
               </button>

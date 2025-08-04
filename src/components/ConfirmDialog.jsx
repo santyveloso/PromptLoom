@@ -89,7 +89,7 @@ export default function ConfirmDialog({
                   onClick={onConfirm}
                   className={confirmVariant === "danger" 
                     ? "bg-red-500 text-white hover:bg-red-600 px-4 py-2 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+                    : "bg-purple-500 text-white font-semibold hover:bg-purple-600 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2 shadow-sm hover:shadow-md"
                   }
                 >
                   {confirmText}
